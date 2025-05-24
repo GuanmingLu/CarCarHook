@@ -1,11 +1,11 @@
 package me.guanming.carcarhook;
 
-import static de.robv.android.xposed.XposedHelpers.findAndHookMethod;
 import android.graphics.Color;
 import android.widget.TextView;
 import de.robv.android.xposed.IXposedHookLoadPackage;
-import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
+import de.robv.android.xposed.XposedHelpers;
+import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 
 public class MainHook implements IXposedHookLoadPackage {

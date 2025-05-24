@@ -1,0 +1,5 @@
+<resources>
+    <string-array name="scope">
+        <item>com.example.car_launcher</item>
+    </string-array>
+</resources>

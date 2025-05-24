@@ -21,7 +21,7 @@ public class MainHook implements IXposedHookLoadPackage {
                 @Override
                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                     long originalTime = (long) param.getResult();
-                    long modifiedTime = originalTime - 8_836_128_000_000L;
+                    long modifiedTime = originalTime - 883_612_800_000L;
                     XposedBridge.log("(CarCarHook) A:" + String.valueOf(originalTime) + " -> " + String.valueOf(modifiedTime));
                     param.setResult(modifiedTime);
                 }

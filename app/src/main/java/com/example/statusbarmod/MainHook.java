@@ -37,7 +37,7 @@ public class MainHook implements IXposedHookLoadPackage {
                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                     java.util.Calendar calendar = (java.util.Calendar) param.getResult();
                     calendar.add(java.util.Calendar.YEAR, -28);
-                    XposedBridge.log("(CarCarHook) B:" + String.valueOf(calendar.get(Calendar.YEAR)));
+                    XposedBridge.log("(CarCarHook) B:" + String.valueOf(calendar.get(java.util.Calendar.YEAR)));
                     param.setResult(calendar);
                 }
             });

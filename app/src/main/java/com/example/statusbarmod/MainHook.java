@@ -22,6 +22,7 @@ public class MainHook implements IXposedHookLoadPackage {
                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                     long originalTime = (long) param.getResult();
                     long modifiedTime = originalTime - 8_836_128_000_000L;
+                    XposedBridge.log("(CarCarHook) A:" + String.valueOf(originalTime) + " -> " + String.valueOf(modifiedTime));
                     param.setResult(modifiedTime);
                 }
             });
@@ -36,6 +37,7 @@ public class MainHook implements IXposedHookLoadPackage {
                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                     java.util.Calendar calendar = (java.util.Calendar) param.getResult();
                     calendar.add(java.util.Calendar.YEAR, -28);
+                    XposedBridge.log("(CarCarHook) B:" + String.valueOf(calendar.get(Calendar.YEAR)));
                     param.setResult(calendar);
                 }
             });

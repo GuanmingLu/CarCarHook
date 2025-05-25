@@ -20,7 +20,7 @@ public class MainHook implements IXposedHookLoadPackage {
     }
 
     private static void modifySystemMillis(XC_MethodHook.MethodHookParam param) {
-        long originalTime = (long)param.getResult;
+        long originalTime = (long)param.getResult();
         long fakeTime = calcTime(originalTime);
         if (originalTime != fakeTime) param.setResult(fakeTime);
         // 这个函数调用太频繁，可能会导致日志过多，因此注释掉

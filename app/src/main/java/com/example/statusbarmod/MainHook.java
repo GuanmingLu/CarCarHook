@@ -34,7 +34,7 @@ public class MainHook implements IXposedHookLoadPackage {
                     }
                 }
             );
-        } catch (Exception e) {
+        } catch (Throwable e) {
             XposedBridge.log("Hook System.currentTimeMillis 失败: " + e.getMessage());
         }
 */
@@ -75,7 +75,7 @@ public class MainHook implements IXposedHookLoadPackage {
                     }
                 }
             );
-        } catch (Exception e) {
+        } catch (Throwable e) {
             XposedBridge.log("Hook java.util.Calendar.getInstance() 失败: " + e.getMessage());
         }
 
@@ -134,7 +134,7 @@ public class MainHook implements IXposedHookLoadPackage {
                     }
                 }
             );
-        } catch (Exception e) {
+        } catch (Throwable e) {
             XposedBridge.log("Hook android.icu.util.Calendar.getInstance() 失败: " + e.getMessage());
         }
 
@@ -149,7 +149,7 @@ public class MainHook implements IXposedHookLoadPackage {
                     }
                 }
             );
-        } catch (Exception e) {
+        } catch (Throwable e) {
             XposedBridge.log("Hook new java.util.GregorianCalendar() 失败: " + e.getMessage());
         }
 
@@ -190,7 +190,7 @@ public class MainHook implements IXposedHookLoadPackage {
                     }
                 }
             );
-        } catch (Exception e) {
+        } catch (Throwable e) {
             XposedBridge.log("Hook java.util.GregorianCalendar.getInstance() 失败: " + e.getMessage());
         }
 
@@ -205,7 +205,7 @@ public class MainHook implements IXposedHookLoadPackage {
         			}
         		}
             );
-        } catch (Exception e) {
+        } catch (Throwable e) {
             XposedBridge.log("Hook Time.setToNow() 失败: " + e.getMessage());
         }
 
@@ -220,7 +220,7 @@ public class MainHook implements IXposedHookLoadPackage {
                     }
                 }
             );
-        } catch (Exception e) {
+        } catch (Throwable e) {
             XposedBridge.log("Hook new java.util.Date() 失败: " + e.getMessage());
         }
 

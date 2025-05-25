@@ -13,13 +13,13 @@ import java.util.Locale;
 public class MainHook implements IXposedHookLoadPackage {
     private Date combine(Date date, Date time) {
         Calendar cal = Calendar.getInstance();
-        cal.time = time;
+        cal.setTime(time);
         int hour = cal.get(Calendar.HOUR_OF_DAY);
         int min = cal.get(Calendar.MINUTE);
-        cal.time = date;
+        cal.setTime(date);
         cal.set(Calendar.HOUR_OF_DAY, hour);
         cal.set(Calendar.MINUTE, min);
-        return cal.time;
+        return cal.getTime();
     }
     
     public void handleLoadPackage(LoadPackageParam lpparam) throws Throwable {
@@ -32,12 +32,12 @@ public class MainHook implements IXposedHookLoadPackage {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                         Date newTimestamp = combine(
-                            SimpleDateFormat("yyyy-MM-dd", Locale.US).parse("2022-01-01"),
-                            Calendar.getInstance().time
+                            new SimpleDateFormat("yyyy-MM-dd", Locale.US).parse("2022-01-01"),
+                            Calendar.getInstance().getTime()
                         );
 
-                        XposedBridge.log("System.currentTimeMillis intercepted: " + newTimestamp);
-                        param.setResult(newTimestamp.time);
+                        XposedBridge.log("(CarCarHook) System.currentTimeMillis intercepted: " + newTimestamp);
+                        param.setResult(newTimestamp.getTime());
                     }
                 }
             );

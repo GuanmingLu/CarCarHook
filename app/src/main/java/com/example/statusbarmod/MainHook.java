@@ -7,37 +7,85 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 
 public class MainHook implements IXposedHookLoadPackage {
-    private static long getTimestamp(long originalTime) {
-        return originalTime - 883_612_800_000L; // 28 years in milliseconds
+    public static final long FAKE_TIME_OFFSET = 883_612_800_000L; // 28 years in milliseconds
+    public static final long FAKE_TIME_DELTA = 3_153_600_000L; // 1 year in milliseconds
+
+    private static long _lastFakeTime = java.lang.System.currentTimeMillis() - FAKE_TIME_OFFSET;
+    private static long calcTime(long originalTime) {
+        long fakeTime = originalTime - FAKE_TIME_OFFSET;
+        _lastFakeTime = originalTime - _lastFakeTime > FAKE_TIME_DELTA
+            ? fakeTime  // 与上次计算结果相差太大（1年），则认为这是未修改的时间，因此使用修改后的时间
+            : originalTime; // 相差不大，认为这是已经修改的时间，不做二次修改，直接返回
+        return _lastFakeTime;
+    }
+
+    private static void modifySystemMillis(XC_MethodHook.MethodHookParam param) {
+        long originalTime = (long)param.getResult;
+        long fakeTime = calcTime(originalTime);
+        if (originalTime != fakeTime) param.setResult(fakeTime);
+        // 这个函数调用太频繁，可能会导致日志过多，因此注释掉
+        // XposedBridge.log("(CarCarHook) System.currentTimeMillis: " + originalTime + " -> " + fakeTime);
     }
     private static void modifyReturnedJavaCalendar(XC_MethodHook.MethodHookParam param) {
         java.util.Calendar calendar = (java.util.Calendar)param.getResult();
-        calendar.add(java.util.Calendar.YEAR, -28);
-        param.setResult(calendar);
+        long originalTime = calendar.getTimeInMillis();
+        long fakeTime = calcTime(originalTime);
+        if (originalTime != fakeTime) {
+            calendar.setTimeInMillis(fakeTime);
+            param.setResult(calendar);
+        }
+        XposedBridge.log("(CarCarHook) java.util.Calendar: " + originalTime + " -> " + fakeTime);
     }
     private static void modifyReturnedAndroidCalendar(XC_MethodHook.MethodHookParam param) {
         android.icu.util.Calendar calendar = (android.icu.util.Calendar)param.getResult();
-        calendar.add(android.icu.util.Calendar.YEAR, -28);
-        param.setResult(calendar);
+        long originalTime = calendar.getTimeInMillis();
+        long fakeTime = calcTime(originalTime);
+        if (originalTime != fakeTime) {
+            calendar.setTimeInMillis(fakeTime);
+            param.setResult(calendar);
+        }
+        XposedBridge.log("(CarCarHook) android.icu.util.Calendar: " + originalTime + " -> " + fakeTime);
     }
+    private static void modifyGregorianCalendarConstructor(XC_MethodHook.MethodHookParam param) {
+        java.util.GregorianCalendar calendar = (java.util.GregorianCalendar)param.thisObject;
+        long originalTime = calendar.getTimeInMillis();
+        long fakeTime = calcTime(originalTime);
+        if (originalTime != fakeTime) calendar.setTimeInMillis(fakeTime);
+        XposedBridge.log("(CarCarHook) java.util.GregorianCalendar: " + originalTime + " -> " + fakeTime);
+    }
+    private static void modifyTimeSetToNow(XC_MethodHook.MethodHookParam param) {
+		android.text.format.Time time = (android.text.format.Time)param.thisObject;
+        long originalTime = time.toMillis(true);
+        long fakeTime = calcTime(originalTime);
+        if (originalTime != fakeTime) time.set(fakeTime);
+        XposedBridge.log("(CarCarHook) android.text.format.Time.setToNow: " + originalTime + " -> " + fakeTime);
+    }
+    private static void modifyDateConstructor(XC_MethodHook.MethodHookParam param) {
+        java.util.Date date = (java.util.Date)param.thisObject;
+        long originalTime = date.getTime();
+        long fakeTime = calcTime(originalTime);
+        if (originalTime != fakeTime) date.setTime(fakeTime);
+        XposedBridge.log("(CarCarHook) java.util.Date: " + originalTime + " -> " + fakeTime);
+    }
+
 
     public void handleLoadPackage(LoadPackageParam lpparam) throws Throwable {
         XposedBridge.log("(CarCarHook) Loaded app: " + lpparam.packageName);
-/*
+
         try {
             XposedHelpers.findAndHookMethod(
                 "java.lang.System", lpparam.classLoader, "currentTimeMillis",
                 new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        param.setResult(getTimestamp((long)param.getResult));
+                        modifySystemMillis(param);
                     }
                 }
             );
         } catch (Throwable e) {
             XposedBridge.log("Hook System.currentTimeMillis 失败: " + e.getMessage());
         }
-*/
+
         try {
             XposedHelpers.findAndHookMethod(
                 "java.util.Calendar", lpparam.classLoader, "getInstance",
@@ -144,8 +192,7 @@ public class MainHook implements IXposedHookLoadPackage {
                 new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        java.util.GregorianCalendar calendar = (java.util.GregorianCalendar)param.thisObject;
-                        calendar.add(java.util.Calendar.YEAR, -28);
+                        modifyGregorianCalendarConstructor(param);
                     }
                 }
             );
@@ -200,8 +247,7 @@ public class MainHook implements IXposedHookLoadPackage {
                 new XC_MethodHook() {
     				@Override
         			protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-    	    			android.text.format.Time time = (android.text.format.Time)param.thisObject;
-                        time.set(getTimestamp(time.toMillis(true)));
+                        modifyTimeSetToNow(param);
         			}
         		}
             );
@@ -215,8 +261,7 @@ public class MainHook implements IXposedHookLoadPackage {
                 new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        java.util.Date date = (java.util.Date)param.thisObject;
-                        date.setTime(getTimestamp(date.getTime()));
+                        modifyDateConstructor(param);
                     }
                 }
             );

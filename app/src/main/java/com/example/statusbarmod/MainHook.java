@@ -10,10 +10,6 @@ public class MainHook implements IXposedHookLoadPackage {
     private static long getTimestamp(long originalTime) {
         return originalTime - 883_612_800_000L; // 28 years in milliseconds
     }
-    private static long getTimestamp() {
-        return getTimestamp(System.currentTimeMillis());
-    }
-
     private static void modifyReturnedJavaCalendar(XC_MethodHook.MethodHookParam param) {
         java.util.Calendar calendar = (java.util.Calendar)param.getResult();
         calendar.add(java.util.Calendar.YEAR, -28);
@@ -27,21 +23,21 @@ public class MainHook implements IXposedHookLoadPackage {
 
     public void handleLoadPackage(LoadPackageParam lpparam) throws Throwable {
         XposedBridge.log("(CarCarHook) Loaded app: " + lpparam.packageName);
-
+/*
         try {
             XposedHelpers.findAndHookMethod(
                 "java.lang.System", lpparam.classLoader, "currentTimeMillis",
                 new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        param.setResult(getTimestamp());
+                        param.setResult(getTimestamp((long)param.getResult));
                     }
                 }
             );
         } catch (Exception e) {
             XposedBridge.log("Hook System.currentTimeMillis 失败: " + e.getMessage());
         }
-
+*/
         try {
             XposedHelpers.findAndHookMethod(
                 "java.util.Calendar", lpparam.classLoader, "getInstance",
@@ -203,9 +199,9 @@ public class MainHook implements IXposedHookLoadPackage {
                 "android.text.format.Time", lpparam.classLoader, "setToNow",
                 new XC_MethodHook() {
     				@Override
-        			protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-    	    			((android.text.format.Time)param.thisObject).set(getTimestamp());
-    	    			param.setResult(null);
+        			protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+    	    			android.text.format.Time time = (android.text.format.Time)param.thisObject;
+                        time.set(getTimestamp(time.toMillis(true)));
         			}
         		}
             );
@@ -220,7 +216,7 @@ public class MainHook implements IXposedHookLoadPackage {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                         java.util.Date date = (java.util.Date)param.thisObject;
-                        date.setTime(getTimestamp());
+                        date.setTime(getTimestamp(date.getTime()));
                     }
                 }
             );

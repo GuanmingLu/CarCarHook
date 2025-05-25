@@ -14,12 +14,12 @@ public class MainHook implements IXposedHookLoadPackage {
         return getTimestamp(System.currentTimeMillis());
     }
 
-    void modifyReturnedJavaCalendar(MethodHookParam param) {
+    private void modifyReturnedJavaCalendar(XC_MethodHook.MethodHookParam param) {
         java.util.Calendar calendar = (java.util.Calendar)param.getResult();
         calendar.add(java.util.Calendar.YEAR, -28);
         param.setResult(calendar);
     }
-    void modifyReturnedAndroidCalendar(MethodHookParam param) {
+    private void modifyReturnedAndroidCalendar(XC_MethodHook.MethodHookParam param) {
         android.icu.util.Calendar calendar = (android.icu.util.Calendar)param.getResult();
         calendar.add(android.icu.util.Calendar.YEAR, -28);
         param.setResult(calendar);

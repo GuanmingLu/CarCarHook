@@ -7,19 +7,19 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 
 public class MainHook implements IXposedHookLoadPackage {
-    private long getTimestamp(long originalTime) {
+    private static long getTimestamp(long originalTime) {
         return originalTime - 883_612_800_000L; // 28 years in milliseconds
     }
-    private long getTimestamp() {
+    private static long getTimestamp() {
         return getTimestamp(System.currentTimeMillis());
     }
 
-    private void modifyReturnedJavaCalendar(XC_MethodHook.MethodHookParam param) {
+    private static void modifyReturnedJavaCalendar(XC_MethodHook.MethodHookParam param) {
         java.util.Calendar calendar = (java.util.Calendar)param.getResult();
         calendar.add(java.util.Calendar.YEAR, -28);
         param.setResult(calendar);
     }
-    private void modifyReturnedAndroidCalendar(XC_MethodHook.MethodHookParam param) {
+    private static void modifyReturnedAndroidCalendar(XC_MethodHook.MethodHookParam param) {
         android.icu.util.Calendar calendar = (android.icu.util.Calendar)param.getResult();
         calendar.add(android.icu.util.Calendar.YEAR, -28);
         param.setResult(calendar);
@@ -48,7 +48,7 @@ public class MainHook implements IXposedHookLoadPackage {
                 new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        ModifyReturnedJavaCalendar(param);
+                        modifyReturnedJavaCalendar(param);
                     }
                 }
             );
@@ -57,7 +57,7 @@ public class MainHook implements IXposedHookLoadPackage {
                 java.util.Locale.class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        ModifyReturnedJavaCalendar(param);
+                        modifyReturnedJavaCalendar(param);
                     }
                 }
             );
@@ -66,7 +66,7 @@ public class MainHook implements IXposedHookLoadPackage {
                 java.util.TimeZone.class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        ModifyReturnedJavaCalendar(param);
+                        modifyReturnedJavaCalendar(param);
                     }
                 }
             );
@@ -75,7 +75,7 @@ public class MainHook implements IXposedHookLoadPackage {
                 java.util.TimeZone.class, java.util.Locale.class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        ModifyReturnedJavaCalendar(param);
+                        modifyReturnedJavaCalendar(param);
                     }
                 }
             );
@@ -163,7 +163,7 @@ public class MainHook implements IXposedHookLoadPackage {
                 new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        ModifyReturnedJavaCalendar(param);
+                        modifyReturnedJavaCalendar(param);
                     }
                 }
             );
@@ -172,7 +172,7 @@ public class MainHook implements IXposedHookLoadPackage {
                 java.util.Locale.class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        ModifyReturnedJavaCalendar(param);
+                        modifyReturnedJavaCalendar(param);
                     }
                 }
             );
@@ -181,7 +181,7 @@ public class MainHook implements IXposedHookLoadPackage {
                 java.util.TimeZone.class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        ModifyReturnedJavaCalendar(param);
+                        modifyReturnedJavaCalendar(param);
                     }
                 }
             );
@@ -190,7 +190,7 @@ public class MainHook implements IXposedHookLoadPackage {
                 java.util.TimeZone.class, java.util.Locale.class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        ModifyReturnedJavaCalendar(param);
+                        modifyReturnedJavaCalendar(param);
                     }
                 }
             );

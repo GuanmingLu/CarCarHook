@@ -67,6 +67,38 @@ public class MainHook implements IXposedHookLoadPackage {
         if (originalTime != fakeTime) date.setTime(fakeTime);
         XposedBridge.log("(CarCarHook) java.util.Date: " + originalTime + " -> " + fakeTime);
     }
+    private static void modifyLocalDateTime(XC_MethodHook.MethodHookParam param) {
+        java.time.LocalDateTime localDateTime = (java.time.LocalDateTime)param.getResult();
+        java.time.ZoneId zone = java.time.ZoneId.systemDefault();
+        long originalTime = localDateTime.atZone(zone).toInstant().toEpochMilli();
+        long fakeTime = calcTime(originalTime);
+        if (originalTime != fakeTime) {
+            localDateTime = java.time.LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(fakeTime), zone);
+            param.setResult(localDateTime);
+        }
+        XposedBridge.log("(CarCarHook) java.time.LocalDateTime.now: " + originalTime + " -> " + fakeTime);
+    }
+    private static void modifyLocalDate(XC_MethodHook.MethodHookParam param) {
+        java.time.LocalDate localDate = (java.time.LocalDate)param.getResult();
+        java.time.ZoneId zone = java.time.ZoneId.systemDefault();
+        long originalTime = localDate.atStartOfDay(zone).toInstant().toEpochMilli();
+        long fakeTime = calcTime(originalTime);
+        if (originalTime != fakeTime) {
+            localDate = java.time.LocalDate.ofInstant(java.time.Instant.ofEpochMilli(fakeTime), zone);
+            param.setResult(localDate);
+        }
+        XposedBridge.log("(CarCarHook) java.time.LocalDate.now: " + originalTime + " -> " + fakeTime);
+    }
+    private static void modifyInstant(XC_MethodHook.MethodHookParam param) {
+        java.time.Instant instant = (java.time.Instant)param.getResult();
+        long originalTime = instant.toEpochMilli();
+        long fakeTime = calcTime(originalTime);
+        if (originalTime != fakeTime) {
+            instant = java.time.Instant.ofEpochMilli(fakeTime);
+            param.setResult(instant);
+        }
+        XposedBridge.log("(CarCarHook) java.time.Instant.now: " + originalTime + " -> " + fakeTime);
+    }
 
 
     public void handleLoadPackage(LoadPackageParam lpparam) throws Throwable {
@@ -267,6 +299,48 @@ public class MainHook implements IXposedHookLoadPackage {
             );
         } catch (Throwable e) {
             XposedBridge.log("Hook new java.util.Date() 失败: " + e.getMessage());
+        }
+
+        try {
+            XposedHelpers.findAndHookMethod(
+                "java.time.LocalDateTime", lpparam.classLoader, "now",
+                new XC_MethodHook() {
+    				@Override
+        			protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        modifyLocalDateTime(param);
+        			}
+        		}
+            );
+        } catch (Throwable e) {
+            XposedBridge.log("Hook LocalDateTime.now() 失败: " + e.getMessage());
+        }
+
+        try {
+            XposedHelpers.findAndHookMethod(
+                "java.time.LocalDate", lpparam.classLoader, "now",
+                new XC_MethodHook() {
+    				@Override
+        			protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        modifyLocalDate(param);
+        			}
+        		}
+            );
+        } catch (Throwable e) {
+            XposedBridge.log("Hook LocalDate.now() 失败: " + e.getMessage());
+        }
+
+        try {
+            XposedHelpers.findAndHookMethod(
+                "java.time.Instant", lpparam.classLoader, "now",
+                new XC_MethodHook() {
+    				@Override
+        			protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        modifyInstant(param);
+        			}
+        		}
+            );
+        } catch (Throwable e) {
+            XposedBridge.log("Hook Instant.now() 失败: " + e.getMessage());
         }
 
         XposedBridge.log("(CarCarHook) Hook done.");

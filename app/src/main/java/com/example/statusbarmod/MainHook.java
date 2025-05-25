@@ -1,12 +1,27 @@
 package me.guanming.carcarhook;
 
+import android.icu.text.SimpleDateFormat;
+import android.icu.util.Calendar;
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
+import java.util.Date;
+import java.util.Locale;
 
 public class MainHook implements IXposedHookLoadPackage {
+    private Date combine(Date date, Date time) {
+        Calendar cal = Calendar.getInstance();
+        cal.time = time;
+        int hour = cal.get(Calendar.HOUR_OF_DAY);
+        int min = cal.get(Calendar.MINUTE);
+        cal.time = date;
+        cal.set(Calendar.HOUR_OF_DAY, hour);
+        cal.set(Calendar.MINUTE, min);
+        return cal.time;
+    }
+    
     public void handleLoadPackage(LoadPackageParam lpparam) throws Throwable {
         XposedBridge.log("(CarCarHook) Loaded app: " + lpparam.packageName);
 
@@ -16,9 +31,13 @@ public class MainHook implements IXposedHookLoadPackage {
                 new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        long originalTime = (long)param.getResult();
-                        long modifiedTime = originalTime - 883_612_800_000L;
-                        param.setResult(modifiedTime);
+                        Date newTimestamp = combine(
+                            SimpleDateFormat("yyyy-MM-dd", Locale.US).parse("2022-01-01"),
+                            Calendar.getInstance().time
+                        );
+
+                        XposedBridge.log("System.currentTimeMillis intercepted: " + newTimestamp);
+                        param.setResult(newTimestamp.time);
                     }
                 }
             );

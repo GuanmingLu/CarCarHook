@@ -341,7 +341,7 @@ public class MainHook implements IXposedHookLoadPackage {
                 new XC_MethodHook() {
     				@Override
         			protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        modifyLocalDate(param);
+                        modifyLocalDate(param, java.time.ZoneId.systemDefault());
         			}
         		}
             );

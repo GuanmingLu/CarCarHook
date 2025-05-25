@@ -67,27 +67,29 @@ public class MainHook implements IXposedHookLoadPackage {
         if (originalTime != fakeTime) date.setTime(fakeTime);
         XposedBridge.log("(CarCarHook) java.util.Date: " + originalTime + " -> " + fakeTime);
     }
-    private static void modifyLocalDateTime(XC_MethodHook.MethodHookParam param) {
+    private static void modifyLocalDateTime(XC_MethodHook.MethodHookParam param, java.time.ZoneId zone) {
         java.time.LocalDateTime localDateTime = (java.time.LocalDateTime)param.getResult();
-        java.time.ZoneId zone = java.time.ZoneId.systemDefault();
         long originalTime = localDateTime.atZone(zone).toInstant().toEpochMilli();
         long fakeTime = calcTime(originalTime);
-        if (originalTime != fakeTime) {
-            localDateTime = java.time.LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(fakeTime), zone);
-            param.setResult(localDateTime);
-        }
+        if (originalTime != fakeTime)
+            param.setResult(java.time.Instant.ofEpochMilli(fakeTime).atZone(zone).toLocalDateTime());
         XposedBridge.log("(CarCarHook) java.time.LocalDateTime.now: " + originalTime + " -> " + fakeTime);
     }
-    private static void modifyLocalDate(XC_MethodHook.MethodHookParam param) {
+    private static void modifyLocalDate(XC_MethodHook.MethodHookParam param, java.time.ZoneId zone) {
         java.time.LocalDate localDate = (java.time.LocalDate)param.getResult();
-        java.time.ZoneId zone = java.time.ZoneId.systemDefault();
         long originalTime = localDate.atStartOfDay(zone).toInstant().toEpochMilli();
         long fakeTime = calcTime(originalTime);
-        if (originalTime != fakeTime) {
-            localDate = java.time.LocalDate.ofInstant(java.time.Instant.ofEpochMilli(fakeTime), zone);
-            param.setResult(localDate);
-        }
+        if (originalTime != fakeTime)
+            param.setResult(java.time.Instant.ofEpochMilli(fakeTime).atZone(zone).toLocalDate());
         XposedBridge.log("(CarCarHook) java.time.LocalDate.now: " + originalTime + " -> " + fakeTime);
+    }
+    private static void modifyZonedDateTime(XC_MethodHook.MethodHookParam param, java.time.ZoneId zone) {
+        java.time.ZonedDateTime zonedDateTime = (java.time.ZonedDateTime)param.getResult();
+        long originalTime = zonedDateTime.toInstant().toEpochMilli();
+        long fakeTime = calcTime(originalTime);
+        if (originalTime != fakeTime)
+            param.setResult(java.time.Instant.ofEpochMilli(fakeTime).atZone(zone));
+        XposedBridge.log("(CarCarHook) java.time.ZonedDateTime.now: " + originalTime + " -> " + fakeTime);
     }
     private static void modifyInstant(XC_MethodHook.MethodHookParam param) {
         java.time.Instant instant = (java.time.Instant)param.getResult();
@@ -307,9 +309,27 @@ public class MainHook implements IXposedHookLoadPackage {
                 new XC_MethodHook() {
     				@Override
         			protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        modifyLocalDateTime(param);
+                        modifyLocalDateTime(param, java.time.ZoneId.systemDefault());
         			}
         		}
+            );
+            XposedHelpers.findAndHookMethod(
+                "java.time.LocalDateTime", lpparam.classLoader, "now",
+                java.time.ZoneId.class, new XC_MethodHook() {
+    				@Override
+        			protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        modifyLocalDateTime(param, (java.time.ZoneId)param.args[0]);
+        			}
+        		}
+            );
+            XposedHelpers.findAndHookMethod(
+                "java.time.LocalDateTime", lpparam.classLoader, "now",
+                java.time.Clock.class, new XC_MethodHook() {
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        modifyLocalDateTime(param, ((java.time.Clock)param.args[0]).getZone());
+                    }
+                }
             );
         } catch (Throwable e) {
             XposedBridge.log("Hook LocalDateTime.now() 失败: " + e.getMessage());
@@ -325,8 +345,58 @@ public class MainHook implements IXposedHookLoadPackage {
         			}
         		}
             );
+            XposedHelpers.findAndHookMethod(
+                "java.time.LocalDate", lpparam.classLoader, "now",
+                java.time.ZoneId.class, new XC_MethodHook() {
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        modifyLocalDate(param, (java.time.ZoneId)param.args[0]);
+                    }
+                }
+            );
+            XposedHelpers.findAndHookMethod(
+                "java.time.LocalDate", lpparam.classLoader, "now",
+                java.time.Clock.class, new XC_MethodHook() {
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        modifyLocalDate(param, ((java.time.Clock)param.args[0]).getZone());
+                    }
+                }
+            );
         } catch (Throwable e) {
             XposedBridge.log("Hook LocalDate.now() 失败: " + e.getMessage());
+        }
+
+        try {
+            XposedHelpers.findAndHookMethod(
+                "java.time.ZonedDateTime", lpparam.classLoader, "now",
+                new XC_MethodHook() {
+    				@Override
+        			protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        modifyZonedDateTime(param, java.time.ZoneId.systemDefault());
+                    }
+                }
+            );
+            XposedHelpers.findAndHookMethod(
+                "java.time.ZonedDateTime", lpparam.classLoader, "now",
+                java.time.ZoneId.class, new XC_MethodHook() {
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        modifyZonedDateTime(param, (java.time.ZoneId)param.args[0]);
+                    }
+                }
+            );
+            XposedHelpers.findAndHookMethod(
+                "java.time.ZonedDateTime", lpparam.classLoader, "now",
+                java.time.Clock.class, new XC_MethodHook() {
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        modifyZonedDateTime(param, ((java.time.Clock)param.args[0]).getZone());
+                    }
+                }
+            );
+        } catch (Throwable e) {
+            XposedBridge.log("Hook ZonedDateTime.now() 失败: " + e.getMessage());
         }
 
         try {
@@ -338,6 +408,15 @@ public class MainHook implements IXposedHookLoadPackage {
                         modifyInstant(param);
         			}
         		}
+            );
+            XposedHelpers.findAndHookMethod(
+                "java.time.Instant", lpparam.classLoader, "now",
+                java.time.Clock.class, new XC_MethodHook() {
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        modifyInstant(param);
+                    }
+                }
             );
         } catch (Throwable e) {
             XposedBridge.log("Hook Instant.now() 失败: " + e.getMessage());

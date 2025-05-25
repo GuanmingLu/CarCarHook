@@ -34,7 +34,7 @@ public class MainHook implements IXposedHookLoadPackage {
                 new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        param.setResult(getTimestamp((long)param.getResult()));
+                        param.setResult(getTimestamp());
                     }
                 }
             );

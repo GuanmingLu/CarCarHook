@@ -22,7 +22,7 @@ public class MainHook implements IXposedHookLoadPackage {
                     }
                 }
             );
-        } catch (ClassNotFoundException e) {
+        } catch (Exception e) {
             XposedBridge.log("Hook System.currentTimeMillis 失败: " + e.getMessage());
         }
 

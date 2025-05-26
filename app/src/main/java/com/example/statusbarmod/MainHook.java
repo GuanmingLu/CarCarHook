@@ -13,7 +13,7 @@ public class MainHook implements IXposedHookLoadPackage {
 
     private long _lastFakeTime;
     private void initTime() {
-        _lastFakeTime = java.lang.System.currentTimeMillis() - FAKE_TIME_OFFSET
+        _lastFakeTime = java.lang.System.currentTimeMillis() - FAKE_TIME_OFFSET;
     }
     private long calcTime(long originalTime) {
         long fakeTime = originalTime - FAKE_TIME_OFFSET;

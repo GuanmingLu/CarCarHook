@@ -11,8 +11,11 @@ public class MainHook implements IXposedHookLoadPackage {
     // public static final long FAKE_TIME_DELTA = 31_536_000_000L; // 1 year in milliseconds
     public static final long FAKE_TIME_DELTA = 2_592_000_000L; // 30 days in milliseconds
 
-    private static long _lastFakeTime = java.lang.System.currentTimeMillis() - FAKE_TIME_OFFSET;
-    private static long calcTime(long originalTime) {
+    private long _lastFakeTime;
+    private void initTime() {
+        _lastFakeTime = java.lang.System.currentTimeMillis() - FAKE_TIME_OFFSET
+    }
+    private long calcTime(long originalTime) {
         long fakeTime = originalTime - FAKE_TIME_OFFSET;
         _lastFakeTime = originalTime - _lastFakeTime > FAKE_TIME_DELTA
             ? fakeTime  // 与上次计算结果相差太大（1年），则认为这是未修改的时间，因此使用修改后的时间
@@ -20,14 +23,14 @@ public class MainHook implements IXposedHookLoadPackage {
         return _lastFakeTime;
     }
 
-    private static void modifySystemMillis(XC_MethodHook.MethodHookParam param) {
+    private void modifySystemMillis(XC_MethodHook.MethodHookParam param) {
         long originalTime = (long)param.getResult();
         long fakeTime = calcTime(originalTime);
         if (originalTime != fakeTime) param.setResult(fakeTime);
         // 这个函数调用太频繁，可能会导致日志过多，因此注释掉
         // XposedBridge.log("(CarCarHook) System.currentTimeMillis: " + originalTime + " -> " + fakeTime);
     }
-    private static void modifyReturnedJavaCalendar(XC_MethodHook.MethodHookParam param) {
+    private void modifyReturnedJavaCalendar(XC_MethodHook.MethodHookParam param) {
         java.util.Calendar calendar = (java.util.Calendar)param.getResult();
         long originalTime = calendar.getTimeInMillis();
         long fakeTime = calcTime(originalTime);
@@ -37,7 +40,7 @@ public class MainHook implements IXposedHookLoadPackage {
         }
         XposedBridge.log("(CarCarHook) java.util.Calendar: " + originalTime + " -> " + fakeTime);
     }
-    private static void modifyReturnedAndroidCalendar(XC_MethodHook.MethodHookParam param) {
+    private void modifyReturnedAndroidCalendar(XC_MethodHook.MethodHookParam param) {
         android.icu.util.Calendar calendar = (android.icu.util.Calendar)param.getResult();
         long originalTime = calendar.getTimeInMillis();
         long fakeTime = calcTime(originalTime);
@@ -47,28 +50,28 @@ public class MainHook implements IXposedHookLoadPackage {
         }
         XposedBridge.log("(CarCarHook) android.icu.util.Calendar: " + originalTime + " -> " + fakeTime);
     }
-    private static void modifyGregorianCalendarConstructor(XC_MethodHook.MethodHookParam param) {
+    private void modifyGregorianCalendarConstructor(XC_MethodHook.MethodHookParam param) {
         java.util.GregorianCalendar calendar = (java.util.GregorianCalendar)param.thisObject;
         long originalTime = calendar.getTimeInMillis();
         long fakeTime = calcTime(originalTime);
         if (originalTime != fakeTime) calendar.setTimeInMillis(fakeTime);
         XposedBridge.log("(CarCarHook) java.util.GregorianCalendar: " + originalTime + " -> " + fakeTime);
     }
-    private static void modifyTimeSetToNow(XC_MethodHook.MethodHookParam param) {
+    private void modifyTimeSetToNow(XC_MethodHook.MethodHookParam param) {
 		android.text.format.Time time = (android.text.format.Time)param.thisObject;
         long originalTime = time.toMillis(true);
         long fakeTime = calcTime(originalTime);
         if (originalTime != fakeTime) time.set(fakeTime);
         XposedBridge.log("(CarCarHook) android.text.format.Time.setToNow: " + originalTime + " -> " + fakeTime);
     }
-    private static void modifyDateConstructor(XC_MethodHook.MethodHookParam param) {
+    private void modifyDateConstructor(XC_MethodHook.MethodHookParam param) {
         java.util.Date date = (java.util.Date)param.thisObject;
         long originalTime = date.getTime();
         long fakeTime = calcTime(originalTime);
         if (originalTime != fakeTime) date.setTime(fakeTime);
         XposedBridge.log("(CarCarHook) java.util.Date: " + originalTime + " -> " + fakeTime);
     }
-    private static void modifyLocalDateTime(XC_MethodHook.MethodHookParam param, java.time.ZoneId zone) {
+    private void modifyLocalDateTime(XC_MethodHook.MethodHookParam param, java.time.ZoneId zone) {
         java.time.LocalDateTime localDateTime = (java.time.LocalDateTime)param.getResult();
         long originalTime = localDateTime.atZone(zone).toInstant().toEpochMilli();
         long fakeTime = calcTime(originalTime);
@@ -76,7 +79,7 @@ public class MainHook implements IXposedHookLoadPackage {
             param.setResult(java.time.Instant.ofEpochMilli(fakeTime).atZone(zone).toLocalDateTime());
         XposedBridge.log("(CarCarHook) java.time.LocalDateTime.now: " + originalTime + " -> " + fakeTime);
     }
-    private static void modifyLocalDate(XC_MethodHook.MethodHookParam param, java.time.ZoneId zone) {
+    private void modifyLocalDate(XC_MethodHook.MethodHookParam param, java.time.ZoneId zone) {
         java.time.LocalDate localDate = (java.time.LocalDate)param.getResult();
         long originalTime = localDate.atStartOfDay(zone).toInstant().toEpochMilli();
         long fakeTime = calcTime(originalTime);
@@ -84,7 +87,7 @@ public class MainHook implements IXposedHookLoadPackage {
             param.setResult(java.time.Instant.ofEpochMilli(fakeTime).atZone(zone).toLocalDate());
         XposedBridge.log("(CarCarHook) java.time.LocalDate.now: " + originalTime + " -> " + fakeTime);
     }
-    private static void modifyZonedDateTime(XC_MethodHook.MethodHookParam param, java.time.ZoneId zone) {
+    private void modifyZonedDateTime(XC_MethodHook.MethodHookParam param, java.time.ZoneId zone) {
         java.time.ZonedDateTime zonedDateTime = (java.time.ZonedDateTime)param.getResult();
         long originalTime = zonedDateTime.toInstant().toEpochMilli();
         long fakeTime = calcTime(originalTime);
@@ -92,7 +95,7 @@ public class MainHook implements IXposedHookLoadPackage {
             param.setResult(java.time.Instant.ofEpochMilli(fakeTime).atZone(zone));
         XposedBridge.log("(CarCarHook) java.time.ZonedDateTime.now: " + originalTime + " -> " + fakeTime);
     }
-    private static void modifyInstant(XC_MethodHook.MethodHookParam param) {
+    private void modifyInstant(XC_MethodHook.MethodHookParam param) {
         java.time.Instant instant = (java.time.Instant)param.getResult();
         long originalTime = instant.toEpochMilli();
         long fakeTime = calcTime(originalTime);
@@ -105,6 +108,7 @@ public class MainHook implements IXposedHookLoadPackage {
 
 
     public void handleLoadPackage(LoadPackageParam lpparam) throws Throwable {
+        initTime();
         XposedBridge.log("(CarCarHook) Loaded app: " + lpparam.packageName);
 
         try {

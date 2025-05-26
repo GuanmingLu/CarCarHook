@@ -7,9 +7,9 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 
 public class MainHook implements IXposedHookLoadPackage {
-    public static final long FAKE_TIME_OFFSET = 883_612_800_000L; // 28 years in milliseconds
-    // public static final long FAKE_TIME_DELTA = 31_536_000_000L; // 1 year in milliseconds
-    public static final long FAKE_TIME_DELTA = 2_592_000_000L; // 30 days in milliseconds
+    // public static final long FAKE_TIME_OFFSET = 883_612_800_000L; // 28 years in milliseconds
+    public static final long FAKE_TIME_OFFSET = 63_072_000_000L;
+    public static final long FAKE_TIME_DELTA = 31_536_000_000L; // 1 year in milliseconds
 
     private long _lastFakeTime;
     private void initTime() {

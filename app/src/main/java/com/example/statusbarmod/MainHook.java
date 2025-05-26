@@ -108,6 +108,20 @@ public class MainHook implements IXposedHookLoadPackage {
 
         try {
             XposedHelpers.findAndHookMethod(
+                "kotlinx.datetime.Clock", lpparam.classLoader, "now",
+                new XC_MethodHook() {
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        XposedBridge.log("(CarCarHook) after Hooked kotlinx.datetime.Clock.now()");
+                    }
+                }
+            );
+        } catch (Throwable e) {
+            XposedBridge.log("Hook kotlinx.datetime 失败: " + e.getMessage());
+        }
+
+        try {
+            XposedHelpers.findAndHookMethod(
                 "java.lang.System", lpparam.classLoader, "currentTimeMillis",
                 new XC_MethodHook() {
                     @Override

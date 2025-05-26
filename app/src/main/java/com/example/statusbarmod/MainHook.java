@@ -8,7 +8,8 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 
 public class MainHook implements IXposedHookLoadPackage {
     public static final long FAKE_TIME_OFFSET = 883_612_800_000L; // 28 years in milliseconds
-    public static final long FAKE_TIME_DELTA = 3_153_600_000L; // 1 year in milliseconds
+    // public static final long FAKE_TIME_DELTA = 31_536_000_000L; // 1 year in milliseconds
+    public static final long FAKE_TIME_DELTA = 2_592_000_000L; // 30 days in milliseconds
 
     private static long _lastFakeTime = java.lang.System.currentTimeMillis() - FAKE_TIME_OFFSET;
     private static long calcTime(long originalTime) {
